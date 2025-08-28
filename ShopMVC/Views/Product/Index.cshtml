@@ -1,0 +1,21 @@
+﻿@model List<ShopMVC.Models.Product>
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Tất cả sản phẩm</h2>
+    <div class="row g-4">
+        @foreach (var product in Model)
+        {
+            <div class="col-md-3 col-sm-6">
+                <div class="card product-card h-100 shadow-sm">
+                    <img src="@product.ImageUrl" class="card-img-top product-img" alt="@product.Name" />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@product.Name</h5>
+                        <p class="card-text text-muted">@product.Description</p>
+                        <p class="price fw-bold text-danger">@product.Price.ToString("N0") VNĐ</p>
+                        <a href="/Product/Details/@product.Id" class="btn btn-primary mt-auto">Chi tiết</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

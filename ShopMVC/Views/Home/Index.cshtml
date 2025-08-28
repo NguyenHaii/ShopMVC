@@ -1,27 +1,16 @@
-﻿@{
-    var categories = ViewBag.Categories as List<ShopMVC.Models.Category>;
-    var products = ViewBag.Products as List<ShopMVC.Models.Product>;
-}
+﻿@model List<ShopMVC.Models.Category>
 
-<div class="container mt-4">
-    <h1 class="text-center mb-5">Trang chủ</h1>
-
-    @foreach (var category in categories)
-    {
-        <h3 class="mt-4">@category.Name</h3>
-        <div class="row">
-            @foreach (var p in products.Where(x => x.CategoryId == category.Id))
-            {
-                <div class="col-6 col-md-3 mb-4">
-                    <div class="card shadow-sm text-center" style="border:2px solid #000;">
-                        <img src="@p.ImageUrl" class="card-img-top" style="height:150px; object-fit:cover;">
-                        <div class="card-body">
-                            <h6>@p.Name</h6>
-                            <p class="text-danger fw-bold">@String.Format("{0:N0} VNĐ", p.Price)</p>
-                        </div>
-                    </div>
+<div class="container">
+    <h2 class="mb-4 text-center">Danh mục sản phẩm</h2>
+    <div class="row g-3">
+        @foreach (var c in Model)
+        {
+            <div class="col-md-4">
+                <div class="card p-3 text-center h-100">
+                    <h5>@c.Name</h5>
+                    <a class="btn btn-primary mt-3" asp-controller="Product" asp-action="Category" asp-route-id="@c.Id">Xem sản phẩm</a>
                 </div>
-            }
-        </div>
-    }
+            </div>
+        }
+    </div>
 </div>

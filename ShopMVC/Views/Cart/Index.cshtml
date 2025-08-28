@@ -1,0 +1,103 @@
+﻿@{
+    Layout = "_Layout";
+    var productsJson = ViewBag.ProductsJson as string ?? "[]";
+}
+<h2 class="mb-4 text-center">Giỏ hàng</h2>
+
+<div id="cart-root" class="container">
+    <p>Nếu giỏ hàng trống sẽ hiển thị thông báo.</p>
+</div>
+
+<div id="qr-container" class="text-center mt-4" style="display:none;">
+    <h4>Quét mã QR để thanh toán</h4>
+    <div id="qrcode" style="width:200px; margin:20px auto;"></div>
+    <button class="btn btn-primary mt-3" onclick="completePayment()">Hoàn tất thanh toán</button>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+    const products = @Html.Raw(productsJson);
+    let total = 0;
+
+    function renderCart() {
+        const cartRoot = document.getElementById('cart-root');
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        if (!cart || cart.length === 0) {
+            cartRoot.innerHTML = '<div class="alert alert-info">Giỏ hàng của bạn đang trống.</div>';
+            document.getElementById('cart-count').innerText = 0;
+            document.getElementById('qr-container').style.display = 'none';
+            return;
+        }
+
+        let html = `<table class="table">
+            <thead><tr><th>Ảnh</th><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th><th></th></tr></thead><tbody>`;
+        total = 0;
+        cart.forEach(item => {
+            const sub = item.price * item.qty;
+            total += sub;
+            html += `<tr>
+                <td style="width:100px"><img src="${item.image}" style="width:80px; height:60px; object-fit:cover" /></td>
+                <td>${item.name}</td>
+                <td>${Number(item.price).toLocaleString()} VNĐ</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="changeQty(${item.id}, -1)">-</button>
+                    <span class="mx-2">${item.qty}</span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="changeQty(${item.id}, 1)">+</button>
+                </td>
+                <td>${Number(sub).toLocaleString()} VNĐ</td>
+                <td><button class="btn btn-sm btn-danger" onclick="removeItem(${item.id})">Xóa</button></td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+        html += `<div class="text-end"><h4>Tổng: ${Number(total).toLocaleString()} VNĐ</h4></div>`;
+        html += `<div class="text-end mt-3"><button class="btn btn-success" onclick="checkout()">Thanh toán</button></div>`;
+
+        cartRoot.innerHTML = html;
+        document.getElementById('cart-count').innerText = cart.length;
+    }
+
+    function changeQty(id, delta) {
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const idx = cart.findIndex(x => x.id === id);
+        if (idx === -1) return;
+        cart[idx].qty += delta;
+        if (cart[idx].qty <= 0) cart.splice(idx, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+        window.dispatchEvent(new Event('cartUpdated'));
+    }
+
+    function removeItem(id) {
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        cart = cart.filter(x => x.id !== id);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+        window.dispatchEvent(new Event('cartUpdated'));
+    }
+
+    function checkout() {
+        document.getElementById('qr-container').style.display = 'block';
+        document.getElementById('qrcode').innerHTML = ''; // Clear old QR
+
+        // Tạo QR: text có thể là số tiền hoặc link thanh toán
+        new QRCode(document.getElementById("qrcode"), {
+            text: `Thanh toán đơn hàng: ${total} VNĐ`,
+            width: 200,
+            height: 200
+        });
+    }
+
+    function completePayment() {
+        alert('Thanh toán thành công!');
+        localStorage.removeItem('cart');
+        document.getElementById('qr-container').style.display = 'none';
+        renderCart();
+        window.dispatchEvent(new Event('cartUpdated'));
+    }
+
+    document.addEventListener('DOMContentLoaded', renderCart);
+    window.addEventListener('cartUpdated', renderCart);
+</script>
+}
